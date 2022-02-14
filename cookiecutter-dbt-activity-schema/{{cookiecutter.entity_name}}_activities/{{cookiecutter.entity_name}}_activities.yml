@@ -1,0 +1,77 @@
+version: 2
+
+models:
+  - name: {{cookiecutter.entity_name}}_activities
+    description: List of activities for {{cookiecutter.entity_name}}s. Conforms to an activity schema specification, see https://github.com/ActivitySchema/ActivitySchema/blob/main/spec.md for more details.
+    tests:
+
+      # Test occurrence counts are correctly maintained by incremental loads.
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - customer
+            - activity
+            - activity_occurrence
+            
+          # For large activity streams consider restricting the date range of the test.
+          # config:
+            # where: "ts > current_date - 7"
+
+      # Test activity_repeated_at is correctly maintained by incremental loads.
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - customer
+            - activity
+          config:                
+            where: "activity_repeated_at is null"            
+            # where: "activity_repeated_at is null and ts > current_date - 7"
+
+
+    columns:
+
+        - name: activity_id
+          description: Unique id for activity
+          tests:
+              - unique
+              # - unique:
+                  # config:
+                    # where: "ts > current_date - 7"
+
+              - not_null
+
+        - name: ts
+          description: Timestamp in UTC for when the activity occurred.
+
+        - name: customer
+          description: Unique identifier for {{cookiecutter.entity_name}}.
+
+        - name: activity
+          description: Name of the {{cookiecutter.entity_name}} activity.
+
+        - name: anonymous_customer_id
+          description: Unique identifier for an anonymous {{cookiecutter.entity_name}} (ex. 'segment_abfb8a').
+
+        - name: feature_1
+          description: Activity-specific feature 1, see `{{cookiecutter.entity_name}}_activity_dictionary` for more details.
+
+        - name: feature_2
+          description: Activity-specific feature 2, see `{{cookiecutter.entity_name}}_activity_dictionary` for more details.
+
+        - name: feature_3
+          description: Activity-specific feature 3, see `{{cookiecutter.entity_name}}_activity_dictionary` for more details.
+
+        - name: revenue_impact
+          description: Revenue or cost associated with the activity
+
+        - name: link
+          description: URL associated with the activity.
+
+        - name: activity_occurrence
+          description: How many times this activity has happened for the {{cookiecutter.entity_name}}.
+          tests:
+            - not_null
+
+        - name: activity_repeated_at
+          description: The timestamp of next instance of this activity for the {{cookiecutter.entity_name}}.
+
+        - name: _activity_source
+          description: Version identifier for the transformation script that created this activity.

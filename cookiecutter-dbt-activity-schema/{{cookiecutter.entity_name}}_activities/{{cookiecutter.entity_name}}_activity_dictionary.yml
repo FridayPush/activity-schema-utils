@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: {{cookiecutter.entity_name}}_activity_dictionary
+    description: List of the different types of activities contained in {{cookiecutter.entity_name}}_activities together with details of the features they include.
+
+    columns:
+
+      - name: activity
+        description: Name of activity.
+        tests:
+          - unique
+
+      - name: activity_description
+        description: Description of activity.
+        
+
+      - name: feature_1
+        description: Column name for feature 1. E.g. 'web_session_started', 'payment_made', 'user_logged_out'
+
+      - name: feature_1_data_type
+        description: SQL data type of feature 1. E.g. VARCHAR, TIMESTAMP, INTEGER.
+
+      - name: feature_1_description
+        description: Description of feature 1.
+
+
+      - name: feature_2
+        description: Column name for feature 2.
+
+      - name: feature_2_data_type
+        description: SQL data type of feature 2.
+
+      - name: feature_2_description
+        description: Description of feature 2.
+
+
+      - name: feature_3
+        description: 
+
+      - name: feature_3_data_type
+        description: SQL data type of feature 3.
+
+      - name: feature_3_description
+        description: Description of feature 3.
