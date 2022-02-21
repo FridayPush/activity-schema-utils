@@ -36,7 +36,7 @@ models:
 
 
       - name: feature_3
-        description: 
+        description: Description of feature 3.
 
       - name: feature_3_data_type
         description: SQL data type of feature 3.

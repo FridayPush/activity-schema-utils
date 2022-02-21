@@ -43,6 +43,8 @@ models:
 
         - name: customer
           description: Unique identifier for {{cookiecutter.entity_name}}.
+          tests:
+            - not_null
 
         - name: activity
           description: Name of the {{cookiecutter.entity_name}} activity.

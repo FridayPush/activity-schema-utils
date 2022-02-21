@@ -57,7 +57,7 @@ with new_activities as (
       new_activities.feature_3,
       new_activities.revenue_impact,
       new_activities.link,
-      new_activities.activity_occurrence + coalesce(last_recorded_activities.activity_occurrence, 1) - 1 as activity_occurrence,
+      new_activities.activity_occurrence + coalesce(last_activities.activity_occurrence, 1) - 1 as activity_occurrence,
       new_activities.activity_repeated_at,
       new_activities._activity_source
 
