@@ -50,7 +50,7 @@ with new_activities as (
 
     from new_activities
 
-      join {{"{{"}} adapter.get_relation(this.database, this.schema, '{{cookiecutter.entity_name}}_activities') }} as existing_activities
+      join {{"{{"}} this }} as existing_activities
       
         on new_activities.customer = existing_activities.customer     -- Match on customer and activity to aid optimisation of join.
           and new_activities.activity = existing_activities.activity  -- ... Can be removed if not helpful.
@@ -65,7 +65,7 @@ with new_activities as (
 
     select 
       *
-    from {{"{{"}} adapter.get_relation(this.database, this.schema, '{{cookiecutter.entity_name}}_activities') }}
+    from {{"{{"}} this }}
     where activity_repeated_at is null
 
   )
