@@ -21,13 +21,13 @@ with new_activities as (
 
       row_number() 
           over (partition by customer, 
-                          activity
-              order by ts) as activity_occurrence,
+                             activity
+                order by ts) as activity_occurrence,
 
       lead(ts) 
           over (partition by customer, 
-                          activity
-              order by ts) as activity_repeated_at
+                             activity
+                order by ts) as activity_repeated_at
 
   from {{"{{"}} ref('union_{{cookiecutter.entity_name}}_activities') }} 
 
@@ -41,7 +41,7 @@ with new_activities as (
 {{"{%"}} else %}
 
   -- get the first existing activity that is also present in the new activities
-  , first_activity_to_be_updated as (
+  , first_of_activities_to_be_updated as (
 
     select 
       existing_activities.customer,
@@ -85,11 +85,12 @@ with new_activities as (
       new_activities.link,
 
       new_activities.activity_occurrence
-        + coalesce(first_activity_to_be_updated.activity_occurrence - 1,  -- If update overlaps with existing data then increment new occurrence counts
-                                                                          -- ... based on the existing occurrence of the first activity which is to be updated by new data.
+        + coalesce(first_of_activities_to_be_updated.activity_occurrence - 1,  -- If update overlaps with existing data then increment new occurrence counts
+                                                                               -- ... based on the existing occurrence of the first activity which is to be updated by new data.
 
-                   last_existing_activity.activity_occurrence)            -- If update doesn't overlap then increment new occurrences based on the occurrence of latest activity in the existing data.
-        
+                   last_existing_activity.activity_occurrence,                  -- If update doesn't overlap then increment new occurrences based on the occurrence of latest activity in the existing data.
+
+                   0)                                                           -- For activities which are completely new to customers there's no need to increment the occurrence     
         as activity_occurrence,
 
       new_activities.activity_repeated_at,
@@ -97,9 +98,9 @@ with new_activities as (
 
   from new_activities 
 
-      left join first_activity_to_be_updated
-          on new_activities.customer = first_activity_to_be_updated.customer 
-              and new_activities.activity = first_activity_to_be_updated.activity 
+      left join first_of_activities_to_be_updated
+          on new_activities.customer = first_of_activities_to_be_updated.customer 
+              and new_activities.activity = first_of_activities_to_be_updated.activity 
 
       left join last_existing_activity
           on new_activities.customer = last_existing_activity.customer 
@@ -134,11 +135,11 @@ with new_activities as (
               and new_activities.activity_occurrence = 1 
 
 
-      left join first_activity_to_be_updated
-          on last_existing_activity.customer = first_activity_to_be_updated.customer 
-              and last_existing_activity.activity = first_activity_to_be_updated.activity 
+      left join first_of_activities_to_be_updated
+          on last_existing_activity.customer = first_of_activities_to_be_updated.customer 
+              and last_existing_activity.activity = first_of_activities_to_be_updated.activity 
 
-  where first_activity_to_be_updated.customer is null -- if this is null then there are no activities to be 
+  where first_of_activities_to_be_updated.customer is null -- if this is null then there are no activities to be 
                                                       -- ... updated for this customer and activity... i.e. no overlap.
 
 {{"{%"}} endif %}
