@@ -20,12 +20,12 @@ with new_activities as (
       *,
 
       row_number() 
-          over (partition by customer, 
+          over (partition by {{cookiecutter.entity_name}}, 
                              activity
                 order by ts) as activity_occurrence,
 
       lead(ts) 
-          over (partition by customer, 
+          over (partition by {{cookiecutter.entity_name}}, 
                              activity
                 order by ts) as activity_repeated_at
 
@@ -44,7 +44,7 @@ with new_activities as (
   , first_of_activities_to_be_updated as (
 
     select 
-      existing_activities.customer,
+      existing_activities.{{cookiecutter.entity_name}},
       existing_activities.activity,
       existing_activities.activity_occurrence 
 
@@ -52,11 +52,11 @@ with new_activities as (
 
       join {{"{{"}} this }} as existing_activities
       
-        on new_activities.customer = existing_activities.customer     -- Match on customer and activity to aid optimisation of join.
+        on new_activities.{{cookiecutter.entity_name}} = existing_activities.{{cookiecutter.entity_name}}     -- Match on {{cookiecutter.entity_name}} and activity to aid optimisation of join.
           and new_activities.activity = existing_activities.activity  -- ... Can be removed if not helpful.
           and new_activities.activity_id = existing_activities.activity_id
 
-    qualify row_number() over (partition by existing_activities.customer, existing_activities.activity
+    qualify row_number() over (partition by existing_activities.{{cookiecutter.entity_name}}, existing_activities.activity
                                order by existing_activities.activity_occurrence) = 1
 
   )
@@ -75,9 +75,9 @@ with new_activities as (
 
       new_activities.activity_id,
       new_activities.ts,
-      new_activities.customer,
+      new_activities.{{cookiecutter.entity_name}},
       new_activities.activity,
-      new_activities.anonymous_customer_id,
+      new_activities.anonymous_{{cookiecutter.entity_name}}_id,
       new_activities.feature_1,
       new_activities.feature_2,
       new_activities.feature_3,
@@ -90,7 +90,7 @@ with new_activities as (
 
                    last_existing_activity.activity_occurrence,                  -- If update doesn't overlap then increment new occurrences based on the occurrence of latest activity in the existing data.
 
-                   0)                                                           -- For activities which are completely new to customers there's no need to increment the occurrence     
+                   0)                                                           -- For activities which are completely new to {{cookiecutter.entity_name}}s there's no need to increment the occurrence     
         as activity_occurrence,
 
       new_activities.activity_repeated_at,
@@ -99,11 +99,11 @@ with new_activities as (
   from new_activities 
 
       left join first_of_activities_to_be_updated
-          on new_activities.customer = first_of_activities_to_be_updated.customer 
+          on new_activities.{{cookiecutter.entity_name}} = first_of_activities_to_be_updated.{{cookiecutter.entity_name}} 
               and new_activities.activity = first_of_activities_to_be_updated.activity 
 
       left join last_existing_activity
-          on new_activities.customer = last_existing_activity.customer 
+          on new_activities.{{cookiecutter.entity_name}} = last_existing_activity.{{cookiecutter.entity_name}} 
               and new_activities.activity = last_existing_activity.activity 
 
   union all 
@@ -115,9 +115,9 @@ with new_activities as (
 
       last_existing_activity.activity_id,
       last_existing_activity.ts,
-      last_existing_activity.customer,
+      last_existing_activity.{{cookiecutter.entity_name}},
       last_existing_activity.activity,
-      last_existing_activity.anonymous_customer_id,
+      last_existing_activity.anonymous_{{cookiecutter.entity_name}}_id,
       last_existing_activity.feature_1,
       last_existing_activity.feature_2,
       last_existing_activity.feature_3,
@@ -130,16 +130,16 @@ with new_activities as (
   from last_existing_activity
 
       join new_activities
-          on  last_existing_activity.customer = new_activities.customer 
+          on  last_existing_activity.{{cookiecutter.entity_name}} = new_activities.{{cookiecutter.entity_name}} 
           and last_existing_activity.activity = new_activities.activity 
               and new_activities.activity_occurrence = 1 
 
 
       left join first_of_activities_to_be_updated
-          on last_existing_activity.customer = first_of_activities_to_be_updated.customer 
+          on last_existing_activity.{{cookiecutter.entity_name}} = first_of_activities_to_be_updated.{{cookiecutter.entity_name}} 
               and last_existing_activity.activity = first_of_activities_to_be_updated.activity 
 
-  where first_of_activities_to_be_updated.customer is null -- if this is null then there are no activities to be 
-                                                      -- ... updated for this customer and activity... i.e. no overlap.
+  where first_of_activities_to_be_updated.{{cookiecutter.entity_name}} is null -- if this is null then there are no activities to be 
+                                                      -- ... updated for this {{cookiecutter.entity_name}} and activity... i.e. no overlap.
 
 {{"{%"}} endif %}

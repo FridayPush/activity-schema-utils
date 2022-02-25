@@ -10,8 +10,8 @@
 select 
     id as activity_id,  
     timestamp as ts,
-    {{cookiecutter.entity_name}}_id as customer,   
-    null as anonymous_customer_id,
+    {{cookiecutter.entity_name}}_id as {{cookiecutter.entity_name}},   
+    null as anonymous_{{cookiecutter.entity_name}}_id,
     'activity_a' as activity
 
     null as feature_1, 

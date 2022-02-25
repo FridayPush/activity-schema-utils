@@ -8,7 +8,7 @@ models:
       # Test occurrence counts are correctly maintained by incremental loads.
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - customer
+            - {{cookiecutter.entity_name}}
             - activity
             - activity_occurrence
             
@@ -19,7 +19,7 @@ models:
       # Test activity_repeated_at is correctly maintained by incremental loads.
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - customer
+            - {{cookiecutter.entity_name}}
             - activity
           config:                
             where: "activity_repeated_at is null"            
@@ -41,7 +41,7 @@ models:
         - name: ts
           description: Timestamp in UTC for when the activity occurred.
 
-        - name: customer
+        - name: {{cookiecutter.entity_name}}
           description: Unique identifier for {{cookiecutter.entity_name}}.
           tests:
             - not_null
@@ -49,7 +49,7 @@ models:
         - name: activity
           description: Name of the {{cookiecutter.entity_name}} activity.
 
-        - name: anonymous_customer_id
+        - name: anonymous_{{cookiecutter.entity_name}}_id
           description: Unique identifier for an anonymous {{cookiecutter.entity_name}} (ex. 'segment_abfb8a').
 
         - name: feature_1
