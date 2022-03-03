@@ -3,12 +3,12 @@
     materialized = 'incremental',
     unique_key='activity_id',
 
-    post_hook=" -- Remove records from old versions of activity transformations.
-                BEGIN; 
-                delete from {{"{{"}} this }} 
-                where _activity_source in ('old_version_of_activity_transformation_to_delete_v0.1',
-                                           'old_version_of_activity_transformation_to_delete_v0.2') ;
-                COMMIT;"
+    pre_hook="-- Remove records from old versions of activity transformations.
+              BEGIN; 
+              delete from {{"{{"}} this }} 
+              where _activity_source in ('old_version_of_activity_transformation_to_delete_v0.1',
+                                         'old_version_of_activity_transformation_to_delete_v0.2') ;
+              COMMIT;"
   )
 }}
 {{"{#"}} Consider adding clustering to the above config to improve performance - e.g. cluster_by=['to_date(ts)'] #}
