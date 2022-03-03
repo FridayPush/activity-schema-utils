@@ -22,12 +22,12 @@ with new_activities as (
       row_number() 
           over (partition by {{cookiecutter.entity_name}}, 
                              activity
-                order by ts) as activity_occurrence,
+                order by ts, activity_id) as activity_occurrence,
 
       lead(ts) 
           over (partition by {{cookiecutter.entity_name}}, 
                              activity
-                order by ts) as activity_repeated_at
+                order by ts, activity_id) as activity_repeated_at
 
   from {{"{{"}} ref('union_{{cookiecutter.entity_name}}_activities') }} 
 
