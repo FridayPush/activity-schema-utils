@@ -46,48 +46,48 @@ Congratulations! You now have an activity schema compatible with activity schema
 
 ## macros/
 
-The macros enable sophisticated analyses without in-depth knowledge of SQL, window functions for example. Currently the macros are written as Snowflake procedures but in future will be converted to DBT macros enabling interactive analysis across multiple platform types using DBT server. The steps below walk through how to install and use the Snowflake procedures.
+The macros enable sophisticated analyses without in-depth knowledge of SQL. Currently the macros are written as Snowflake procedures but in future will be converted to DBT macros enabling interactive analysis across multiple platform types using DBT server. The steps below walk through how to install and use the Snowflake procedures.
 
 ### Get_and_append_activities()
 
-This macro allows multiple activities to be appended to a primary activity using different relationships (there's a fantastic explanation of the different relationships here: https://docs.narrator.ai/docs/relationships). The outputted table puts all the information about an individual activity on a single row making it much easier for SQL users to calculate things like conversion rates or the time between two events.
+This macro allows multiple activities to be appended to a primary activity using different relationships (there's a fantastic explanation of all the relationships here: https://docs.narrator.ai/docs/relationships). The outputted table puts all the information about an individual activity on a single row making it much easier for SQL users to calculate things like conversion rates or the time between two activities.
 
 The step below walks through how to create and use the procedure in Snowflake.
 
 1. **Install the get_and_append_activities() macro:**
     1. Open [get_and_append_activities.sql](https://github.com/birdiecare/activity-schema-utils/blob/main/macros/snowflake_procedures/get_and_append_activities.sql) in a SQL editor connected to Snowflake.
-    2. Update the procedure based `-- Developer TODO:` comments contained in the file.
-    3. Run each of the SQL commands in the file in order.
+    2. Update the procedure based on the `-- Developer TODO:` comments contained in the file.
+    3. Run each of the SQL commands in the file.
 
 2. **Call the macro:**
     1. Choose two activities from your activity schema. In this example there are two activities, `customer_received_email` and `customer_responded_to_email`, from an activity schema called `customer_activities`.
     2. Update the `entity`, `get_activity`, `append_activities` fields in the query below to relect your activity schema:
-    ```SQL
-    call get_and_append_activities('{
-                                                
-        "entity": "customer", 
-        
-        "get_activity": "customer_received_email",
-                                                    
-        "occurrences": "all",     
-                                                
-        "append_activities": [
-                
-            {
-                "activity": "customer_responded_to_email",
-                "append_relationship": "first_inbetween"
-            }    
-        ],
-                                        
-        "output_table": "analytics.output_schema.conversion_results_1"
-    }');
-    ```
-    3. Submit the updated query and then run (updating the `output_schema`) to view the outputted table:
-    ```SQL
-    select * from analytics.output_schema.conversion_results_1
-    order by ts
-    ```
-    This table can be directly used to calculate conversion rates or times between events.
+        ```SQL
+        call get_and_append_activities('{
+
+            "entity": "customer", 
+
+            "get_activity": "customer_received_email",
+
+            "occurrences": "all",     
+
+            "append_activities": [
+
+                {
+                    "activity": "customer_responded_to_email",
+                    "append_relationship": "first_inbetween"
+                }    
+            ],
+
+            "output_table": "analytics.output_schema.conversion_results_1"
+        }');
+        ```
+    3. Submit the updated query and then run the query below (updating the `output_schema`) to view the outputted table:
+        ```SQL
+        select * from analytics.output_schema.conversion_results_1
+        order by ts
+        ```
+    This table can be directly used to calculate conversion rates or times between activities.
 
 ### Show_appended_activities_example()
 
@@ -95,34 +95,34 @@ This macro helps SQL users understand how activities are appended by different r
 
 1. **Install the show_appended_activities_example() macro:**
     1. Open [show_appended_activities_example.sql](https://github.com/birdiecare/activity-schema-utils/blob/main/macros/snowflake_procedures/show_appended_activities_example.sql) in a SQL editor connected to Snowflake.
-    2. Update the procedure based `-- Developer TODO:` comments contained in the file.
-    3. Run each of the SQL commands in the file in order.
+    2. Update the procedure based on the `-- Developer TODO:` comments contained in the file.
+    3. Run each of the SQL commands in the file.
 
 2. **Call the macro:**
     1. Choose two activities from your activity schema. In this example there are two activities, `customer_received_email` and `customer_responded_to_email`, from an activity schema called `customer_activities`.
     2. Update the `entity`, `get_activity`, `append_activities` fields in the query below to relect your activity schema:
-    ```SQL
-    call show_appended_activities_example('{
-                                                
-        "entity": "customer", 
-        
-        "get_activity": "customer_received_email",
-                                                    
-        "occurrences": "all",     
-                                                
-        "append_activities": [
-                
-            {
-                "activity": "customer_responded_to_email",
-                "append_relationship": "first_inbetween"
-            }    
-        ],
-                                        
-        "output_table": "analytics.output_schema.appended_activities_example_1"
-    }');
-    ```
-    3. Submit the updated query and then run (updating the `output_schema`) to view the example:
-    ```SQL
-    select * from analytics.output_schema.appended_activities_example_1
-    order by ts
-    ```
+        ```SQL
+        call show_appended_activities_example('{
+
+            "entity": "customer", 
+
+            "get_activity": "customer_received_email",
+
+            "occurrences": "all",     
+
+            "append_activities": [
+
+                {
+                    "activity": "customer_responded_to_email",
+                    "append_relationship": "first_inbetween"
+                }    
+            ],
+
+            "output_table": "analytics.output_schema.appended_activities_example_1"
+        }');
+        ```
+    3. Submit the updated query and then run the query below (updating the `output_schema`) to view the example:
+        ```SQL
+        select * from analytics.output_schema.appended_activities_example_1
+        order by ts
+        ```
