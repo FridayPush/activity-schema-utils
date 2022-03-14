@@ -6,7 +6,7 @@ use role analytics_admin;
 use database analytics;
 use schema public;
 
-create or replace procedure analytics.public.get_and_append_activities(
+create or replace procedure get_and_append_activities(
     INPUT_TEXT varchar
 )
 returns varchar
