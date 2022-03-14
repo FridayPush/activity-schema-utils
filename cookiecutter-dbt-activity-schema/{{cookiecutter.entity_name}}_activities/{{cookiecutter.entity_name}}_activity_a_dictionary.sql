@@ -1,13 +1,11 @@
-{{"{#"}}
-    Create dictionary entries for activities to enable SQL users and the tools/functions they use to understand the contents of your activity schemas.
-#}
-
 {{"{{"}}
   config(
     materialized = 'ephemeral',
     )
 }}
 
+-- Developer TODO: Update the dictionary entry for the new activity. This metadata is then used by
+--                 activity schema macros to output the correct field names and types for feature fields.
 select
                                                             -- Examples: -
     'activity_a' as activity,                               --   support_chat_started

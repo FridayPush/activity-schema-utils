@@ -6,6 +6,6 @@
 
 select * from {{"{{"}} ref('{{cookiecutter.entity_name}}_activity_a_source') }}
 
-union all
+-- union all
 
-select * from {{"{{"}} ref('{{cookiecutter.entity_name}}_activity_b_source') }}
+-- select * from {{"{{"}} ref('{{cookiecutter.entity_name}}_activity_b_source') }}
