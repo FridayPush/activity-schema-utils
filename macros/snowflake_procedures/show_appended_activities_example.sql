@@ -75,14 +75,29 @@ query_text +=
 "        activity_repeated_at \n" +
 "    from " + ACTIVITY_SCHEMA_LOCATION + "." + INPUT.entity + "_activities \n" +
 "        join find_example_entity on provider = example_entity \n" +
-"    where activity in ('" + INPUT.get_activity + "','" + APPEND_INPUT.activity + "')\n" +
+"    where activity in ('" + INPUT.get_activity + "','" + APPEND_INPUT.activity + "')\n";
+
+if (INPUT.occurrences == "first")
+    query_text +=
+    "       and activity_occurrence = 1 \n";
+else if (INPUT.occurrences == "last")
+    query_text +=
+    "       and activity_repeated_at is null \n";   
+else if (INPUT.occurrences == "all")
+    query_text +=
+    "       and 1=1 \n"
+else 
+    query_text +=
+    "       and activity_occurrence = " + INPUT.occurrences + " \n";
+    
+query_text +=
 ") \n\n";
 
 
 
 //3. CALCULATE LINKS BETWEEN PRIMARY AND APPENDED ACTIVITIES
         
-if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "first_inbetween", "last_inbetween"].includes(APPEND_INPUT.append_rule)) 
+if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "first_inbetween", "last_inbetween"].includes(APPEND_INPUT.append_relationship)) 
 {
 
      query_text +=
@@ -95,10 +110,10 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
     "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as appended_activity_occurrence \n" +
     "from all_activities \n";
     
-    if (APPEND_INPUT.append_rule == "first_ever" || APPEND_INPUT.append_rule == "last_ever")
+    if (APPEND_INPUT.append_relationship == "first_ever" || APPEND_INPUT.append_relationship == "last_ever")
     {
         var append_filter = "appended.activity_occurrence = 1";
-        if (APPEND_INPUT.append_rule == "last_ever") append_filter = "appended.activity_repeated_at is null";
+        if (APPEND_INPUT.append_relationship == "last_ever") append_filter = "appended.activity_repeated_at is null";
 
         query_text +=
         "       left join all_activities as appended \n" +
@@ -107,7 +122,7 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
         "           and " + append_filter + "\n";
 
     }
-    else if (APPEND_INPUT.append_rule == "first_before") 
+    else if (APPEND_INPUT.append_relationship == "first_before") 
     {
         query_text += 
         "       left join all_activities as appended \n" +
@@ -116,7 +131,7 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
         "           and appended.activity_occurrence = 1 \n" +
         "           and appended.ts < all_activities.ts \n";
     }
-    else if (APPEND_INPUT.append_rule == "last_before")
+    else if (APPEND_INPUT.append_relationship == "last_before")
     {
         query_text += 
         "       left join all_activities as appended \n" +
@@ -124,7 +139,7 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
         "           and appended." + INPUT.entity + " = all_activities." + INPUT.entity + " \n" +
         "           and appended.ts < all_activities.ts and all_activities.ts <= appended.activity_repeated_at \n";
     } 
-    else if (APPEND_INPUT.append_rule == "last_after")
+    else if (APPEND_INPUT.append_relationship == "last_after")
     {
         query_text += 
         "       left join all_activities as appended \n" +
@@ -133,10 +148,10 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
         "           and appended.activity_repeated_at is null \n" +
         "           and appended.ts > all_activities.ts \n";
     }
-    else if (APPEND_INPUT.append_rule == "first_inbetween" || APPEND_INPUT.append_rule == "last_inbetween")
+    else if (APPEND_INPUT.append_relationship == "first_inbetween" || APPEND_INPUT.append_relationship == "last_inbetween")
     {
         var sort_desc = ""
-        if (APPEND_INPUT.append_rule == "last_inbetween") sort_desc = "desc"
+        if (APPEND_INPUT.append_relationship == "last_inbetween") sort_desc = "desc"
 
         query_text +=
         "       left join all_activities as appended \n" +
@@ -151,7 +166,7 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
     }
 
 }
-else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggregate_all_ever", "aggregate"].includes(APPEND_INPUT.append_rule))
+else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggregate_all_ever", "aggregate"].includes(APPEND_INPUT.append_relationship))
 {
     query_text +=
     "select  \n" +
@@ -164,7 +179,7 @@ else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggrega
     "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as appended_activity_occurrence   \n" +
     "from all_activities \n";
 
-    if (APPEND_INPUT.append_rule == "aggregate_before")
+    if (APPEND_INPUT.append_relationship == "aggregate_before")
     {
         query_text +=
         "       left join all_activities as appended \n" +
@@ -172,7 +187,7 @@ else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggrega
         "           and appended." + INPUT.entity + " = all_activities." + INPUT.entity + " \n" +
         "           and appended.ts < all_activities.ts \n"; 
     } 
-    else if (APPEND_INPUT.append_rule == "aggregate_inbetween")
+    else if (APPEND_INPUT.append_relationship == "aggregate_inbetween")
     {
         query_text +=
         "       left join all_activities as appended \n" +
@@ -181,7 +196,7 @@ else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggrega
         "           and appended.ts between all_activities.ts \n" +
         "                             and coalesce(all_activities.activity_repeated_at, '9999-12-31') \n";
     } 
-    else if (APPEND_INPUT.append_rule == "aggregate_after")
+    else if (APPEND_INPUT.append_relationship == "aggregate_after")
     {
         query_text +=
         "       left join all_activities as appended \n" +
@@ -189,7 +204,7 @@ else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggrega
         "           and appended." + INPUT.entity + " = all_activities." + INPUT.entity + " \n" +
         "           and appended.ts > all_activities.ts \n";
     } 
-    else if (APPEND_INPUT.append_rule == "aggregate_all_ever")
+    else if (APPEND_INPUT.append_relationship == "aggregate_all_ever")
     {
         query_text +=
         "       left join all_activities as appended \n" +

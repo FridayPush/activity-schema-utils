@@ -13,11 +13,11 @@ This repo is organised into two folders:
 
 - `cookiecutter-dbt-activity-schema/` is a cookiecutter template for adding activity schema models to an existing DBT project. These models can be configured to update incrementally enabling large datasets to be modelled a lower cost. 
   
-- `macros/` contains a set of macros enabling SQL users answer questions using activity schemas. These macros enable even those who are relatively new to SQL to do sophisticated analyses (for example cohort analysis). Currently the macros are written as snowflake stored procedures but in the near future will be converted into DBT macros to take advantage of the upcoming DBT server feature.
+- `macros/` contains a set of macros enabling SQL users answer questions using activity schemas. These macros enable even those who are relatively new to SQL to do sophisticated analyses (for example cohort analysis). Currently the macros are written as snowflake stored procedures but in future will be converted into DBT macros.
 
 ## cookiecutter-dbt-activity-schema/
 
-The cookiecutter templates makes it easy to add a new activity schema to a DBT project. The steps below walk through how to add a new model and then how to add new activities to the model:
+The cookiecutter template makes it easy to add a new activity schema to a DBT project. The steps below walk through how to create a new model and then how to add new activities to the model:
 
 1. **Add an activity schema model to a DBT project:**
     1. Install cookiecutter ([installation guide](https://cookiecutter.readthedocs.io/en/latest/installation.html)).
@@ -46,5 +46,83 @@ Congratulations! You now have an activity schema compatible with activity schema
 
 ## macros/
 
-To do:
-- [ ] Describe how to install and use snowflake procedures
+The macros enable sophisticated analyses without in-depth knowledge of SQL, window functions for example. Currently the macros are written as Snowflake procedures but in future will be converted to DBT macros enabling interactive analysis across multiple platform types using DBT server. The steps below walk through how to install and use the Snowflake procedures.
+
+### Get_and_append_activities()
+
+This macro allows multiple activities to be appended to a primary activity using different relationships (there's a fantastic explanation of the different relationships here: https://docs.narrator.ai/docs/relationships). The outputted table puts all the information about an individual activity on a single row making it much easier for SQL users to calculate things like conversion rates or the time between two events.
+
+The step below walks through how to create and use the procedure in Snowflake.
+
+1. **Install the get_and_append_activities() macro:**
+    1. Open [get_and_append_activities.sql](https://github.com/birdiecare/activity-schema-utils/blob/main/macros/snowflake_procedures/get_and_append_activities.sql) in a SQL editor connected to Snowflake.
+    2. Update the procedure based `-- Developer TODO:` comments contained in the file.
+    3. Run each of the SQL commands in the file in order.
+
+2. **Call the macro:**
+    1. Choose two activities from your activity schema. In this example there are two activities, `customer_received_email` and `customer_responded_to_email`, from an activity schema called `customer_activities`.
+    2. Update the `entity`, `get_activity`, `append_activities` fields in the query below to relect your activity schema:
+    ```SQL
+    call get_and_append_activities('{
+                                                
+        "entity": "customer", 
+        
+        "get_activity": "customer_received_email",
+                                                    
+        "occurrences": "all",     
+                                                
+        "append_activities": [
+                
+            {
+                "activity": "customer_responded_to_email",
+                "append_relationship": "first_inbetween"
+            }    
+        ],
+                                        
+        "output_table": "analytics.output_schema.conversion_results_1"
+    }');
+    ```
+    3. Submit the updated query and then run (updating the `output_schema`) to view the outputted table:
+    ```SQL
+    select * from analytics.output_schema.conversion_results_1
+    order by ts
+    ```
+    This table can be directly used to calculate conversion rates or times between events.
+
+### Show_appended_activities_example()
+
+This macro helps SQL users understand how activities are appended by different relationships when using the `get_and_append_activities()` macro. The `linked_to_appended_activity_occurrence` field in the outputted table identifies the occurrence of the appended activity which the primary activity has been linked to. 
+
+1. **Install the show_appended_activities_example() macro:**
+    1. Open [show_appended_activities_example.sql](https://github.com/birdiecare/activity-schema-utils/blob/main/macros/snowflake_procedures/show_appended_activities_example.sql) in a SQL editor connected to Snowflake.
+    2. Update the procedure based `-- Developer TODO:` comments contained in the file.
+    3. Run each of the SQL commands in the file in order.
+
+2. **Call the macro:**
+    1. Choose two activities from your activity schema. In this example there are two activities, `customer_received_email` and `customer_responded_to_email`, from an activity schema called `customer_activities`.
+    2. Update the `entity`, `get_activity`, `append_activities` fields in the query below to relect your activity schema:
+    ```SQL
+    call show_appended_activities_example('{
+                                                
+        "entity": "customer", 
+        
+        "get_activity": "customer_received_email",
+                                                    
+        "occurrences": "all",     
+                                                
+        "append_activities": [
+                
+            {
+                "activity": "customer_responded_to_email",
+                "append_relationship": "first_inbetween"
+            }    
+        ],
+                                        
+        "output_table": "analytics.output_schema.appended_activities_example_1"
+    }');
+    ```
+    3. Submit the updated query and then run (updating the `output_schema`) to view the example:
+    ```SQL
+    select * from analytics.output_schema.appended_activities_example_1
+    order by ts
+    ```

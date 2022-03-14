@@ -136,7 +136,7 @@ if ("append_activities" in INPUT)
     
         var APPEND_INPUT = INPUT.append_activities[i];
         
-        if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "first_inbetween", "last_inbetween"].includes(APPEND_INPUT.append_rule)) 
+        if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "first_inbetween", "last_inbetween"].includes(APPEND_INPUT.append_relationship)) 
         {
     
             var append_feature_1_name = "appended_feature_1";
@@ -159,16 +159,16 @@ if ("append_activities" in INPUT)
                 append_feature_3_name = metadata_query_results.getColumnValue(3);
             }
 
-            if (!!append_feature_1_name && existing_columns.includes(append_feature_1_name)) append_feature_1_name = APPEND_INPUT.append_rule + "_" + APPEND_INPUT.activity + "_" + append_feature_1_name;
-            if (!!append_feature_2_name && existing_columns.includes(append_feature_2_name)) append_feature_2_name = APPEND_INPUT.append_rule + "_" + APPEND_INPUT.activity + "_" + append_feature_2_name;
-            if (!!append_feature_3_name && existing_columns.includes(append_feature_3_name)) append_feature_3_name = APPEND_INPUT.append_rule + "_" + APPEND_INPUT.activity + "_" + append_feature_3_name;
+            if (!!append_feature_1_name && existing_columns.includes(append_feature_1_name)) append_feature_1_name = APPEND_INPUT.append_relationship + "_" + APPEND_INPUT.activity + "_" + append_feature_1_name;
+            if (!!append_feature_2_name && existing_columns.includes(append_feature_2_name)) append_feature_2_name = APPEND_INPUT.append_relationship + "_" + APPEND_INPUT.activity + "_" + append_feature_2_name;
+            if (!!append_feature_3_name && existing_columns.includes(append_feature_3_name)) append_feature_3_name = APPEND_INPUT.append_relationship + "_" + APPEND_INPUT.activity + "_" + append_feature_3_name;
 
             query_text +=
             ", append_activity_" + (i+1) + " as ( \n" +
             "   select \n" +
             "       primary.*, \n" +
-            "       appended.ts as " + APPEND_INPUT.append_rule + "_" + APPEND_INPUT.activity + "_ts \n";
-            existing_columns.push(APPEND_INPUT.append_rule + "_" + APPEND_INPUT.activity + "_ts")
+            "       appended.ts as " + APPEND_INPUT.append_relationship + "_" + APPEND_INPUT.activity + "_ts \n";
+            existing_columns.push(APPEND_INPUT.append_relationship + "_" + APPEND_INPUT.activity + "_ts")
 
             if (append_feature_1_name != "" && append_feature_1_name) {
                 query_text += 
@@ -193,10 +193,10 @@ if ("append_activities" in INPUT)
             else  query_text +=
             "   from append_activity_" + (i) + " as primary \n";
 
-            if (APPEND_INPUT.append_rule == "first_ever" || APPEND_INPUT.append_rule == "last_ever")
+            if (APPEND_INPUT.append_relationship == "first_ever" || APPEND_INPUT.append_relationship == "last_ever")
             {
                 var append_filter = "appended.activity_occurrence = 1";
-                if (APPEND_INPUT.append_rule == "last_ever") append_filter = "appended.activity_repeated_at is null";
+                if (APPEND_INPUT.append_relationship == "last_ever") append_filter = "appended.activity_repeated_at is null";
 
                 query_text +=
                 "       left join all_activities as appended \n" +
@@ -205,7 +205,7 @@ if ("append_activities" in INPUT)
                 "           and " + append_filter + "\n";
 
             }
-            else if (APPEND_INPUT.append_rule == "first_before") 
+            else if (APPEND_INPUT.append_relationship == "first_before") 
             {
                 query_text += 
                 "       left join all_activities as appended \n" +
@@ -214,7 +214,7 @@ if ("append_activities" in INPUT)
                 "           and appended.activity_occurrence = 1 \n" +
                 "           and appended.ts < primary.ts \n";
             }
-            else if (APPEND_INPUT.append_rule == "last_before")
+            else if (APPEND_INPUT.append_relationship == "last_before")
             {
                 query_text += 
                 "       left join all_activities as appended \n" +
@@ -222,7 +222,7 @@ if ("append_activities" in INPUT)
                 "           and appended." + INPUT.entity + " = primary." + INPUT.entity + " \n" +
                 "           and appended.ts < primary.ts and primary.ts <= appended.activity_repeated_at \n";
             } 
-            else if (APPEND_INPUT.append_rule == "last_after")
+            else if (APPEND_INPUT.append_relationship == "last_after")
             {
                 query_text += 
                 "       left join all_activities as appended \n" +
@@ -231,10 +231,10 @@ if ("append_activities" in INPUT)
                 "           and appended.activity_repeated_at is null \n" +
                 "           and appended.ts > primary.ts \n";
             }
-            else if (APPEND_INPUT.append_rule == "first_inbetween" || APPEND_INPUT.append_rule == "last_inbetween")
+            else if (APPEND_INPUT.append_relationship == "first_inbetween" || APPEND_INPUT.append_relationship == "last_inbetween")
             {
                 var sort_desc = ""
-                if (APPEND_INPUT.append_rule == "last_inbetween") sort_desc = "desc"
+                if (APPEND_INPUT.append_relationship == "last_inbetween") sort_desc = "desc"
 
                 query_text +=
                 "       left join all_activities as appended \n" +
@@ -252,9 +252,9 @@ if ("append_activities" in INPUT)
             query_text +=
             ")\n\n";
         }
-        else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggregate_all_ever", "aggregate"].includes(APPEND_INPUT.append_rule))
+        else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggregate_all_ever", "aggregate"].includes(APPEND_INPUT.append_relationship))
         {
-            var aggregate_rule_suffix = APPEND_INPUT.append_rule.split("_")[1];
+            var aggregate_rule_suffix = APPEND_INPUT.append_relationship.split("_")[1];
         
             query_text +=
             ", append_activity_" + (i+1) + " as ( \n" +
@@ -271,7 +271,7 @@ if ("append_activities" in INPUT)
             else  query_text +=
             "   from append_activity_" + (i) + " as primary \n";
 
-            if (APPEND_INPUT.append_rule == "aggregate_before")
+            if (APPEND_INPUT.append_relationship == "aggregate_before")
             {
                 query_text +=
                 "       left join all_activities as appended \n" +
@@ -279,7 +279,7 @@ if ("append_activities" in INPUT)
                 "           and appended." + INPUT.entity + " = primary." + INPUT.entity + " \n" +
                 "           and appended.ts < primary.ts \n"; 
             } 
-            else if (APPEND_INPUT.append_rule == "aggregate_inbetween")
+            else if (APPEND_INPUT.append_relationship == "aggregate_inbetween")
             {
                 query_text +=
                 "       left join all_activities as appended \n" +
@@ -288,7 +288,7 @@ if ("append_activities" in INPUT)
                 "           and appended.ts between primary.ts \n" +
                 "                             and coalesce(primary.activity_repeated_at, '9999-12-31') \n";
             } 
-            else if (APPEND_INPUT.append_rule == "aggregate_after")
+            else if (APPEND_INPUT.append_relationship == "aggregate_after")
             {
                 query_text +=
                 "       left join all_activities as appended \n" +
@@ -296,7 +296,7 @@ if ("append_activities" in INPUT)
                 "           and appended." + INPUT.entity + " = primary." + INPUT.entity + " \n" +
                 "           and appended.ts > primary.ts \n";
             } 
-            else if (APPEND_INPUT.append_rule == "aggregate_all_ever")
+            else if (APPEND_INPUT.append_relationship == "aggregate_all_ever")
             {
                 query_text +=
                 "       left join all_activities as appended \n" +
