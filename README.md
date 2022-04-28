@@ -3,8 +3,8 @@
 
 ## Contents
 - [Introduction](#introduction)
-- [Create an activity schema](#create-an-activity-schema)
-- [Analyse an activity schema](#analyse-an-activity-schema)
+- [Creating activity schemas](#creating-activity-schemas)
+- [Analysing activity schemas](#analysing-activity-schemas)
   - [Get and append activities](#get-and-append-activities)
   - [Macro input reference](#macro-input-reference)
 
@@ -25,7 +25,7 @@ This repo is organised into two folders:
   
  - `macros/` contains a set of macros enabling SQL users answer questions using activity schemas. These macros enable even those who are relatively new to SQL to do sophisticated analyses (for example cohort analysis). Currently the macros are written as snowflake stored procedures but in future will be converted into DBT macros.
 
-## Create an activity schema
+## Creating activity schemas
 
 The cookiecutter template makes it easy to add a new activity schema to a DBT project. The steps below walk through how to create a new model and then how to add new activities to the model:
 
@@ -54,7 +54,7 @@ The cookiecutter template makes it easy to add a new activity schema to a DBT pr
 
 Congratulations! You now have an activity schema compatible with activity schema macros documented below.
 
-## Analyse an activity schema
+## Analysing activity schemas
 
 The macros enable sophisticated analyses without in-depth knowledge of SQL. Currently the macros are written as Snowflake procedures but in future will be converted to DBT macros enabling interactive analysis across multiple platform types using DBT server. The steps below walk through how to install and use the Snowflake procedures.
 
@@ -99,7 +99,7 @@ The step below walks through how to create and use the procedure in Snowflake.
         select * from analytics.output_schema.conversion_results_1
         order by ts
         ```
-    This table can be directly used to calculate conversion rates or times between activities.
+        This table can be directly used to calculate conversion rates or times between activities.
 
 #### show_appended_activities_example()
 
@@ -144,7 +144,7 @@ Both macros described above takes the following JSON formatted inputs.
 | Field    |      Description     |
 |----------|-------------|
 | entity |  Defines the activity schema to analyse, for example an input of `customer` points the macro at the `customer_activities` schema. |
-| get_activity | The primary activity to be analyses. All other activities will be appended to this activity.  |  
+| get_activity | The primary activity to be analysed. All other activities will be appended to this activity. E.g. `customer_received_email`.  |  
 | occurrences | Which occurrences of the primary activity to get. `first` gets earliest activity for a particular entity, `last` gets the latest, `all` gets all activities and `2`,`3`,`4` gets the second, third, fourth activity. |   
 | append_activities | An array of key value pairs specifying the `activity` to be appended and the `append_relationship` to be applied when appending. The latter can take on the values: `first_ever`, `last_ever`, `first_before`, `last_before`, `last_after`, `first_inbetween`, `last_inbetween`, `aggregate_before`, `aggregate_after`, `aggregate_inbetween` and `aggregate_all_ever`. A great explanation of each of these relationships is available at https://docs.narrator.ai/docs/relationships. |
 | output_table | The fully qualified location where the macro should output its results. |
