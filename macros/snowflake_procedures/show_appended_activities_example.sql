@@ -47,8 +47,15 @@ var query_text =
 "        row_number() over (order by secondary_activity_count desc) as secondary_activity_rank, \n" +
 "        primary_activity_rank + secondary_activity_rank as primary_secondary_rank \n" +
 "    from " + ACTIVITY_SCHEMA_LOCATION + "." + INPUT.entity + "_activities \n" +
-"    where activity in ('" + INPUT.get_activity + "','" + APPEND_INPUT.activity + "')\n" +
-"    group by 1 \n" +
+"    where activity in ('" + INPUT.get_activity + "','" + APPEND_INPUT.activity + "')\n";
+
+
+if ("filter" in INPUT != '') 
+    query_text +=
+    "       and " + INPUT.filter + " \n";
+
+query_text += 
+"   group by 1 \n" +
 ") \n\n";
 
 
@@ -74,8 +81,12 @@ query_text +=
 "        activity_occurrence, \n" +
 "        activity_repeated_at \n" +
 "    from " + ACTIVITY_SCHEMA_LOCATION + "." + INPUT.entity + "_activities \n" +
-"        join find_example_entity on provider = example_entity \n" +
+"        join find_example_entity on " + INPUT.entity + " = example_entity \n" +
 "    where activity in ('" + INPUT.get_activity + "','" + APPEND_INPUT.activity + "')\n";
+
+if ("filter" in INPUT != '') 
+    query_text +=
+    "       and " + INPUT.filter + " \n";
 
 if (INPUT.occurrences == "first")
     query_text +=
@@ -105,9 +116,9 @@ if (["first_ever", "last_ever", "first_before", "last_before", "last_after", "fi
     "    all_activities." + INPUT.entity + ", \n" +
     "    all_activities.ts, \n" +
     "    case when all_activities.activity = '" + INPUT.get_activity + "' then all_activities.activity end as primary_activity, \n" +
-    "    case when all_activities.activity = '" + INPUT.get_activity + "' then appended.activity_occurrence end as linked_to_appended_activity_occurrence,     \n" +
-    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity end as appended_activity, \n" +
-    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as appended_activity_occurrence \n" +
+    "    case when all_activities.activity = '" + INPUT.get_activity + "' then appended.activity_occurrence end as appended_to_secondary_activity_occurrence,     \n" +
+    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity end as secondary_activity, \n" +
+    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as secondary_activity_occurrence \n" +
     "from all_activities \n";
     
     if (APPEND_INPUT.append_relationship == "first_ever" || APPEND_INPUT.append_relationship == "last_ever")
@@ -170,13 +181,13 @@ else if (["aggregate_before", "aggregate_inbetween", "aggregate_after", "aggrega
 {
     query_text +=
     "select  \n" +
-    "    all_activities.provider, \n" +
+    "    all_activities." + INPUT.entity + ", \n" +
     "    all_activities.ts, \n" +
     "    case when all_activities.activity = '" + INPUT.get_activity + "' then all_activities.activity end as primary_activity, \n" +
     "    listagg(case when all_activities.activity = '" + INPUT.get_activity + "' then appended.activity_occurrence end, ',')  \n" +
-    "        within group (order by appended.activity_occurrence) as aggregated_appended_activity_occurrences,     \n" +
-    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity end as appended_activity, \n" +
-    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as appended_activity_occurrence   \n" +
+    "        within group (order by appended.activity_occurrence) as aggregated_secondary_activity_occurrences,     \n" +
+    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity end as secondary_activity, \n" +
+    "    case when all_activities.activity = '" + APPEND_INPUT.activity + "' then all_activities.activity_occurrence end as secondary_activity_occurrence   \n" +
     "from all_activities \n";
 
     if (APPEND_INPUT.append_relationship == "aggregate_before")
